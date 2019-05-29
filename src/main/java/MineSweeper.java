@@ -3,8 +3,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-import java.io.IOException;
-
 public class MineSweeper {
     public static String libWithDriversLocation = System.getProperty("user.dir") + "\\src\\main\\resources\\";
     public static int x;
@@ -13,7 +11,7 @@ public class MineSweeper {
 
     public static WebDriver driver;
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args)  {
 
         System.setProperty("webdriver.chrome.driver", libWithDriversLocation + "chromedriver.exe");
         driver = new ChromeDriver();
@@ -27,83 +25,54 @@ public class MineSweeper {
 
         y = Integer.parseInt(splitedLasteelement[0]);
         x = Integer.parseInt(splitedLasteelement[1]) - 1;
-
+        field = new int[x][y];
 
         click();
-      findElementsFirst();
+
         findElements();
 
 
 
 
         MineSweeperSolver mss = new MineSweeperSolver();
-        Pair[] squaresToClick = mss.solve(field);
-        click(squaresToClick);
+        while (!driver.findElement(By.id("face")).getAttribute("class").equals("facewin")
+                && !driver.findElement(By.id("face")).getAttribute("class").equals("facedead")) {
+            Pair[] squaresToClick = mss.solve(field);
+            if (squaresToClick.length > 0) {
+                click(squaresToClick);
+            } else {
+                clickRandom();
+            }
+            findElements();
+        }
         //   driver.quit();
 
     }
 
 
-    public static void findElementsFirst() {
-        field = new int[x][y];
-        for (int i = 1; i <= y; i++) {
-            for (int j = 1; j <= x; j++) {
-                field[j - 1][i - 1] = -1;
-            }
-        }
 
-    }
 
     public static void findElements() {
+        String value = driver.getPageSource();
 
         for (int i = 1; i <= y; i++) {
             for (int j = 1; j <= x; j++) {
-                String value = driver.findElement(By.id(i + "_" + j)).getAttribute("class");
-                if (field[j - 1][i - 1] == -1) {
-                    switch (value) {
-                        case ("square open0"):
-                            field[j - 1][i - 1] = 0;
-                            break;
-                        case ("square open1"):
-                            field[j - 1][i - 1] = 1;
-                            break;
-                        case ("square open2"):
-                            field[j - 1][i - 1] = 2;
-                            break;
-                        case ("square open3"):
-                            field[j - 1][i - 1] = 3;
-                            break;
-                        case ("square open4"):
-                            field[j - 1][i - 1] = 4;
-                            break;
-                        case ("square open5"):
-                            field[j - 1][i - 1] = 5;
-                            break;
-                        case ("square open6"):
-                            field[j - 1][i - 1] = 6;
-                            break;
-                        case ("square open7"):
-                            field[j - 1][i - 1] = 7;
-                            break;
-                        case ("square open8"):
-                            field[j - 1][i - 1] = 8;
-                            break;
 
-                        default:
-                            field[j - 1][i - 1] = -1;
-                    }
-                }
 
-//                if (value.equals("square blank")) field[j - 1][i - 1] = -1;
-//                if (value.equals("square open0")) field[j - 1][i - 1] = 0;
-//                if (value.equals("square open1")) field[j - 1][i - 1] = 1;
-//                if (value.equals("square open2")) field[j - 1][i - 1] = 2;
-//                if (value.equals("square open3")) field[j - 1][i - 1] = 3;
-//                if (value.equals("square open4")) field[j - 1][i - 1] = 4;
-//                if (value.equals("square open5")) field[j - 1][i - 1] = 5;
-//                if (value.equals("square open6")) field[j - 1][i - 1] = 6;
-//                if (value.equals("square open7")) field[j - 1][i - 1] = 7;
-//                if (value.equals("square open8")) field[j - 1][i - 1] = 8;
+
+                if(value.contains("class=\"square blank\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = -1;
+                if(value.contains("class=\"square open0\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 0;
+                if(value.contains("class=\"square open1\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 1;
+                if(value.contains("class=\"square open2\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 2;
+                if(value.contains("class=\"square open3\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 3;
+                if(value.contains("class=\"square open4\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 4;
+                if(value.contains("class=\"square open5\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 5;
+                if(value.contains("class=\"square open6\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 6;
+                if(value.contains("class=\"square open7\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 7;
+                if(value.contains("class=\"square open8\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 8;
+
+
+
 
                 System.out.print(field[j - 1][i - 1] + " ");
             }
@@ -115,7 +84,7 @@ public class MineSweeper {
     public static void click() {
 //
 
-        driver.findElement(By.id("1_1")).click();
+        driver.findElement(By.id("8_15")).click();
 
 
     }
@@ -125,6 +94,17 @@ public class MineSweeper {
             driver.findElement(By.id(stc.getValue() + 1 + "_" + (stc.getKey() + 1))).click();
 
 
+        }
+    }
+
+    public static void clickRandom() {
+        for (int i = 0; i < x; i++) {
+            for (int j = 0; j < y; j++) {
+                if (field[i][j] == -1) {
+                    driver.findElement(By.id(j + 1 + "_" + (i + 1))).click();
+                    return;
+                }
+            }
         }
     }
 
