@@ -28,26 +28,21 @@ public static int[][] field;
         driver.get("http://minesweeperonline.com/");
 
 
-
-        List<WebElement> square = driver.findElements(By.xpath("//*[@class='square blank']"));
-        List<WebElement> noneSquare = driver.findElements(By.xpath("//*[@style='display: none;']"));
+        String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
 
 
-        int lastelement = square.size() - noneSquare.size() + 5;
-
-        String lastelementString = square.get(lastelement).getAttribute("id");
 
 
-       String[]  splitedLasteelement= lastelementString.split("_");
+       String[]  splitedLasteelement= dimensions.split("_");
+
         y = Integer.parseInt(splitedLasteelement[0]);
-         x = Integer.parseInt(splitedLasteelement[1]);
+         x = Integer.parseInt(splitedLasteelement[1])-1;
+
 
         field = new int[x][y];
 
 
-//        Pair<Integer, Integer>[] coord;
-//        coord[0].getKey();
-//        coord[0].getValue();
+
 
 findElements();
 click();
@@ -60,7 +55,7 @@ public static void findElements(){
 
     for (int i = 1; i <=y ; i++) {
         for (int j = 1; j <=x ; j++) {
-            String value = driver.findElement(By.id(String.format(i+"_"+j))).getAttribute("class");
+            String value = driver.findElement(By.id(i+"_"+j)).getAttribute("class");
 
             if (value.equals("square blank")) field[j-1][i-1]=-1;
             if (value.equals("square open0")) field[j-1][i-1]=0;
@@ -81,7 +76,9 @@ public static void findElements(){
 }
 
     public static void click(){
-
+//        Pair<Integer, Integer>[] coord;
+//        coord[0].getKey();
+//        coord[0].getValue();
 
         driver.findElement(By.id("1_1")).click();
 
