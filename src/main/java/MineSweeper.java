@@ -11,13 +11,16 @@ public class MineSweeper {
 
     public static WebDriver driver;
 
-    public static void main(String[] args)  {
+    public static void main(String[] args) throws InterruptedException {
 
         System.setProperty("webdriver.chrome.driver", libWithDriversLocation + "chromedriver.exe");
         driver = new ChromeDriver();
         driver.manage().window().maximize();
 
         driver.get("http://minesweeperonline.com/");
+
+       // custom();
+
 
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
 
@@ -26,12 +29,10 @@ public class MineSweeper {
         y = Integer.parseInt(splitedLasteelement[0]);
         x = Integer.parseInt(splitedLasteelement[1]) - 1;
         field = new int[x][y];
-
+        findElementsFirst();
         click();
 
         findElements();
-
-
 
 
         MineSweeperSolver mss = new MineSweeperSolver();
@@ -49,34 +50,54 @@ public class MineSweeper {
 
     }
 
+    private static void findElementsFirst() {
 
+        for (int i = 1; i <= y; i++) {
+            for (int j = 1; j <= x; j++) {
+                field[j - 1][i - 1] = -1;
+            }
+        }
+    }
+
+    private static void custom() {
+        driver.findElement(By.xpath("//*[@title='game options']")).click();
+        driver.findElement(By.id("custom")).click();
+        driver.findElement(By.id("custom_height")).clear();
+        driver.findElement(By.id("custom_height")).sendKeys("50");
+        driver.findElement(By.id("custom_width")).clear();
+        driver.findElement(By.id("custom_width")).sendKeys("50");
+        driver.findElement(By.id("custom_mines")).clear();
+        driver.findElement(By.id("custom_mines")).sendKeys("500");
+
+        driver.findElement(By.xpath("//*[@value='New Game']")).click();
+
+    }
 
 
     public static void findElements() {
         String value = driver.getPageSource();
+        value=value.substring(value.indexOf("id=\"game\""), value.indexOf("display: none;"));
 
         for (int i = 1; i <= y; i++) {
             for (int j = 1; j <= x; j++) {
 
-
-
-                if(value.contains("class=\"square blank\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = -1;
-                if(value.contains("class=\"square open0\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 0;
-                if(value.contains("class=\"square open1\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 1;
-                if(value.contains("class=\"square open2\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 2;
-                if(value.contains("class=\"square open3\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 3;
-                if(value.contains("class=\"square open4\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 4;
-                if(value.contains("class=\"square open5\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 5;
-                if(value.contains("class=\"square open6\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 6;
-                if(value.contains("class=\"square open7\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 7;
-                if(value.contains("class=\"square open8\" id=\""+i+"_"+j+"\"")) field[j - 1][i - 1] = 8;
-
-
-
-
-                System.out.print(field[j - 1][i - 1] + " ");
+                if (field[j - 1][i - 1] == -1) {
+                    if (value.contains("class=\"square blank\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = -1;else {
+                    if (value.contains("class=\"square open0\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 0;else {
+                    if (value.contains("class=\"square open1\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 1;else {
+                    if (value.contains("class=\"square open2\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 2;else {
+                    if (value.contains("class=\"square open3\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 3;else {
+                    if (value.contains("class=\"square open4\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 4;else {
+                    if (value.contains("class=\"square open5\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 5;else {
+                    if (value.contains("class=\"square open6\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 6;else {
+                    if (value.contains("class=\"square open7\" id=\"" + i + "_" + j + "\"")) field[j - 1][i - 1] = 7;else {
+                        if (value.contains("class=\"square open8\" id=\"" + i + "_" + j + "\""))
+                            field[j - 1][i - 1] = 8;
+                    }}}}}}}}}
+                }
+                //System.out.print(field[j - 1][i - 1] + " ");
             }
-            System.out.println();
+            // System.out.println();
         }
 
     }
@@ -84,7 +105,7 @@ public class MineSweeper {
     public static void click() {
 //
 
-        driver.findElement(By.id("8_15")).click();
+        driver.findElement(By.id(y / 2 + "_" + x / 2)).click();
 
 
     }
