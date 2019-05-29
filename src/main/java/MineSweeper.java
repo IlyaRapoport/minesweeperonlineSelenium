@@ -37,11 +37,13 @@ public class MineSweeper {
         field = new int[x][y];
 
 
-
         click();
         findElements();
-       // Thread.sleep(1000);
-        driver.quit();
+
+        MineSweeperSolver mss = new MineSweeperSolver();
+        Pair[] squaresToClick = mss.solve(field);
+        click(squaresToClick);
+     //   driver.quit();
 
     }
 
@@ -62,22 +64,25 @@ public class MineSweeper {
                 if (value.equals("square open7")) field[j - 1][i - 1] = 7;
                 if (value.equals("square open8")) field[j - 1][i - 1] = 8;
 
-              //  System.out.print(field[j - 1][i - 1]+" ");
+                 System.out.print(field[j - 1][i - 1]+" ");
             }
-           //System.out.println();
+           System.out.println();
         }
 
     }
 
     public static void click() {
-//        Pair<Integer, Integer>[] coord;
-//        coord[0].getKey();
-//        coord[0].getValue();
+//
 
         driver.findElement(By.id("1_1")).click();
 
 
     }
 
+    public static void click(Pair[] squaresToClick) {
+        for (Pair<Integer, Integer> stc : squaresToClick) {
+            driver.findElement(By.id(stc.getValue().toString() + "_" + stc.getKey().toString())).click();
+        }
+    }
 
 }

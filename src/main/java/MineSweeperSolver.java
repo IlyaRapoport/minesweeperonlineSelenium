@@ -9,7 +9,7 @@ public class MineSweeperSolver {
     private int[][] mines;
 
     private boolean checkGridBorder(int x, int y) {
-        return x >= 0 && y >= 0 && x < size.getKey() && y < size.getValue();
+        return x < 0 || y < 0 || x >= size.getKey() || y >= size.getValue();
     }
 
     private List<Pair<Integer, Integer>> findBlankSquaresNearby(int x, int y){
