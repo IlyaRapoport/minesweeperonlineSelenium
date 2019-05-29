@@ -25,25 +25,22 @@ public class MineSweeper {
         driver = new ChromeDriver();
         driver.manage().window().maximize();
 
-
         driver.get("http://minesweeperonline.com/");
 
-
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
-
 
         String[] splitedLasteelement = dimensions.split("_");
 
         y = Integer.parseInt(splitedLasteelement[0]);
         x = Integer.parseInt(splitedLasteelement[1]) - 1;
 
-
         field = new int[x][y];
 
 
-        findElements();
+
         click();
-        Thread.sleep(1000);
+        findElements();
+       // Thread.sleep(1000);
         driver.quit();
 
     }
@@ -65,9 +62,9 @@ public class MineSweeper {
                 if (value.equals("square open7")) field[j - 1][i - 1] = 7;
                 if (value.equals("square open8")) field[j - 1][i - 1] = 8;
 
-
+              //  System.out.print(field[j - 1][i - 1]+" ");
             }
-
+           //System.out.println();
         }
 
     }
