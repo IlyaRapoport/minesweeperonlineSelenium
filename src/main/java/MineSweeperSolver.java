@@ -1,7 +1,9 @@
 import javafx.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MineSweeperSolver {
     private Pair<Integer, Integer> size;
@@ -9,18 +11,18 @@ public class MineSweeperSolver {
     private int[][] mines;
 
     private boolean checkGridBorder(int x, int y) {
-        return x < 0 || y < 0 || x >= size.getKey() || y >= size.getValue();
+        return x >= 0 && y >= 0 && x < size.getKey() && y < size.getValue();
     }
 
     private List<Pair<Integer, Integer>> findBlankSquaresNearby(int x, int y){
-        List<Pair<Integer, Integer>> blankSquaresNearby = new ArrayList<Pair<Integer, Integer>>();
-        for (int x1 = -1; x1 < 1; x1++) {
-            for (int y1 = -1; y1 < 1; y1++) {
-                if (x1 == 0 && y1 == 0 || checkGridBorder(x + x1, y + y1)) {
+        List<Pair<Integer, Integer>> blankSquaresNearby = new ArrayList<>();
+        for (int x1 = -1; x1 <= 1; x1++) {
+            for (int y1 = -1; y1 <= 1; y1++) {
+                if (x1 == 0 && y1 == 0 || !checkGridBorder(x + x1, y + y1)) {
                     continue;
                 }
                 if (openedSquares[x + x1][y + y1] == -1 && mines[x + x1][y + y1] == 0) {
-                    blankSquaresNearby.add(new Pair<Integer, Integer>(x + x1, y + y1));
+                    blankSquaresNearby.add(new Pair<>(x + x1, y + y1));
                 }
             }
         }
@@ -28,32 +30,47 @@ public class MineSweeperSolver {
     }
 
     private List<Pair<Integer, Integer>> findMinesNearby(int x, int y){
-        List<Pair<Integer, Integer>> minesNearby = new ArrayList<Pair<Integer, Integer>>();
+        List<Pair<Integer, Integer>> minesNearby = new ArrayList<>();
         for (int x1 = -1; x1 <= 1; x1++) {
             for (int y1 = -1; y1 <= 1; y1++) {
-                if (x1 == 0 && y1 == 0 || checkGridBorder(x + x1, y + y1)) {
+                if (x1 == 0 && y1 == 0 || !checkGridBorder(x + x1, y + y1)) {
                     continue;
                 }
                 if (mines[x + x1][y + y1] == 1) {
-                    minesNearby.add(new Pair<Integer, Integer>(x + x1, y + y1));
+                    minesNearby.add(new Pair<>(x + x1, y + y1));
                 }
             }
         }
         return minesNearby;
     }
 
+    private void printGrid(int[][] grid){
+        for (int y = 0; y < size.getValue(); y++) {
+            for (int x = 0; x < size.getKey(); x++) {
+                System.out.print(grid[x][y] != -1 ? grid[x][y] : "_");
+            }
+            System.out.println();
+        }
+        System.out.println("x:" + grid.length);
+        System.out.println("y:" + grid[grid.length - 1].length);
+    }
+
     public Pair[] solve(int[][] grid) {
         openedSquares = grid;
         if (size == null){
-            size = new Pair<Integer, Integer>(openedSquares.length, openedSquares[openedSquares.length - 1].length);
+            size = new Pair<>(openedSquares.length, openedSquares[openedSquares.length - 1].length);
         }
         if (mines == null){
             mines = new int[size.getKey()][size.getValue()];
         }
 
+//        System.out.println("Grid:");
+//        System.out.println();
+//        printGrid(openedSquares);
+
         for (int x = 0; x < size.getKey(); x++) {
             for (int y = 0; y < size.getValue(); y++) {
-                if (openedSquares[x][y] == -1) {
+                if (openedSquares[x][y] == -1 || openedSquares[x][y] == 0) {
                     continue;
                 }
                 List<Pair<Integer, Integer>> minesNearby = findMinesNearby(x, y);
@@ -63,21 +80,31 @@ public class MineSweeperSolver {
                         mines[bs.getKey()][bs.getValue()] = 1;
                     }
                 }
+//                System.out.println("Finding mines for square " + x + " " + y + ":");
+//                System.out.println(minesNearby);
+//                System.out.println("Finding blanks for square " + x + " " + y + ":");
+//                System.out.println(blankSquaresNearby);
             }
         }
 
-        List<Pair<Integer, Integer>> squaresToOpen = new ArrayList<Pair<Integer, Integer>>();
+        Set<Pair<Integer, Integer>> squaresToOpen = new HashSet<>();
         for (int x = 0; x < size.getKey(); x++) {
             for (int y = 0; y < size.getValue(); y++) {
-                if (openedSquares[x][y] == -1) {
+                if (openedSquares[x][y] == -1 || openedSquares[x][y] == 0) {
                     continue;
                 }
                 List<Pair<Integer, Integer>> minesNearby = findMinesNearby(x, y);
+//                System.out.println("Finding mines for square " + x + " " + y + ":");
+//                System.out.println(minesNearby);
                 if (openedSquares[x][y] == minesNearby.size()){
                     squaresToOpen.addAll(findBlankSquaresNearby(x, y));
                 }
             }
         }
+//        System.out.println("Found mines:");
+//        printGrid(mines);
+//        System.out.println("Squares to open:");
+//        System.out.println(squaresToOpen);
         return squaresToOpen.toArray(new Pair[0]);
     }
 }
