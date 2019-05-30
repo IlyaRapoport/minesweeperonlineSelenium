@@ -127,7 +127,9 @@ public class MineSweeperSolver {
                     }
                 }
                 if (openedCells[sharedOpenedList.get(j).getKey()][sharedOpenedList.get(j).getValue()]
-                        - minesNearby.size() - variantMinesCount < 0) {
+                        - minesNearby.size() - variantMinesCount < 0
+                        || openedCells[sharedOpenedList.get(j).getKey()][sharedOpenedList.get(j).getValue()]
+                        - minesNearby.size() >= blankCellsNearby.size() - variantMinesCount) {
                     variants.remove(i);
                     i--;
                     break;
