@@ -117,16 +117,16 @@ public class MineSweeperSolver {
             List<Pair<Integer, Integer>> sharedOpenedList = new ArrayList<>(sharedOpened);
             for (int j = 0; j < sharedOpenedList.size(); j++) {
                 List<Pair<Integer, Integer>> minesNearby
-                        = findMinesNearby(sharedOpenedList.get(i).getKey(), sharedOpenedList.get(i).getValue());
+                        = findMinesNearby(sharedOpenedList.get(j).getKey(), sharedOpenedList.get(j).getValue());
                 List<Pair<Integer, Integer>> blankCellsNearby
-                        = findBlankCellsNearby(sharedOpenedList.get(i).getKey(), sharedOpenedList.get(i).getValue());
+                        = findBlankCellsNearby(sharedOpenedList.get(j).getKey(), sharedOpenedList.get(j).getValue());
                 int variantMinesCount = 0;
                 for (Pair<Integer, Integer> bcn : blankCellsNearby) {
                     if (variants.get(i).containsKey(bcn) && variants.get(i).get(bcn) == 1) {
                         variantMinesCount++;
                     }
                 }
-                if (openedCells[sharedOpenedList.get(i).getKey()][sharedOpenedList.get(i).getValue()]
+                if (openedCells[sharedOpenedList.get(j).getKey()][sharedOpenedList.get(j).getValue()]
                         - minesNearby.size() - variantMinesCount < 0) {
                     variants.remove(i);
                     i--;
