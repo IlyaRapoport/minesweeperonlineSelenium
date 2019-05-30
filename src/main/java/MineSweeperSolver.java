@@ -88,10 +88,10 @@ public class MineSweeperSolver {
         double until = Math.pow(2, size);
         for (int i = 1; i < until; i++) {
             sequences.add(new ArrayList<>(sequences.get(i - 1)));
-            for (int j = sequences.get(i).size(); j >= 0; j--) {
+            for (int j = size - 1; j >= 0; j--) {
                 if (sequences.get(i).get(j) == 0) {
                     sequences.get(i).set(j, 1);
-                    for (int k = j + 1; k < sequences.get(i).size(); k++) {
+                    for (int k = j + 1; k < size; k++) {
                         sequences.get(i).set(k, 0);
                     }
                     break;
