@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="minesweeperonlineSelenium" target="7" />
+      <module name="minesweeperonlineSelenium" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>
