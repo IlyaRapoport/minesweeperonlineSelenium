@@ -5,8 +5,16 @@ import java.util.*;
 public class MineSweeperSolver {
     private Pair<Integer, Integer> size;
     private int[][] openedCells;
-    private int[][] mines;
+    private double[][] mines;
     private boolean[][] solved;
+    private Integer totalMinesAmount;
+
+    public MineSweeperSolver() {
+    }
+
+    public MineSweeperSolver(int totalMinesAmount) {
+        this.totalMinesAmount = totalMinesAmount;
+    }
 
     public static boolean checkGridBorder(int x, int y, Pair<Integer, Integer> size) {
         return x >= 0 && y >= 0 && x < size.getKey() && y < size.getValue();
@@ -57,26 +65,41 @@ public class MineSweeperSolver {
         return openedCellsNearby;
     }
 
-    //TODO find a non-direct neighbor
-    private List<Pair<Integer, Integer>> findNeighborsWithSharedBlanks(int x, int y) {
-        List<Pair<Integer, Integer>> neighborsWithSharedBlanks = new ArrayList<>();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                if (dx == 0 && dy == 0 || !checkGridBorder(x + dx, y + dy, size)
-                        || solved[x + dx][y + dy] || openedCells[x + dx][y + dy] == -1) {
-                    continue;
-                }
-                List<Pair<Integer, Integer>> neighbor1BlankCellsNearby = findBlankCellsNearby(x, y);
-                List<Pair<Integer, Integer>> neighbor2BlankCellsNearby = findBlankCellsNearby(x + dx, y + dy);
-                for (Pair<Integer, Integer> n2bcn : neighbor2BlankCellsNearby) {
-                    if (neighbor1BlankCellsNearby.contains(n2bcn)) {
-                        neighborsWithSharedBlanks.add(new Pair<>(x + dx, y + dy));
-                        break;
+    private List<Pair<Integer, Integer>> findCellsWithSharedBlanks(int x, int y) {
+        Set<Pair<Integer, Integer>> cellsWithSharedBlanks = new HashSet<>();
+        List<Pair<Integer, Integer>> blankCellsNearby = findBlankCellsNearby(x, y);
+        for (Pair<Integer, Integer> bcn : blankCellsNearby) {
+            cellsWithSharedBlanks.addAll(findOpenedCellsNearby(bcn.getKey(), bcn.getValue()));
+        }
+        cellsWithSharedBlanks.remove(new Pair<>(x, y));
+        return new ArrayList<>(cellsWithSharedBlanks);
+    }
+
+    private List<Pair<Integer, Integer>> findAllCellsBySharedBlanks(int x, int y) {
+        List<Pair<Integer, Integer>> cellsWithSharedBlanks = new ArrayList<>();
+        List<Pair<Integer, Integer>> cellsTocCheck = new ArrayList<>();
+        cellsWithSharedBlanks.add(new Pair<>(x, y));
+        cellsTocCheck.add(new Pair<>(x, y));
+        while (cellsTocCheck.size() > 0) {
+            List<Pair<Integer, Integer>> allNewCellsWithSharedBlanks = new ArrayList<>();
+            for (Pair<Integer, Integer> ncwsb : cellsTocCheck) {
+                List<Pair<Integer, Integer>> blankCellsNearby = findBlankCellsNearby(ncwsb.getKey(), ncwsb.getValue());
+                for (Pair<Integer, Integer> bcn : blankCellsNearby) {
+                    List<Pair<Integer, Integer>> newCellsWithSharedBlanks = findOpenedCellsNearby(bcn.getKey(), bcn.getValue());
+                    for (int i = 0; i < newCellsWithSharedBlanks.size(); i++) {
+                        if (cellsWithSharedBlanks.contains(newCellsWithSharedBlanks.get(i))) {
+                            newCellsWithSharedBlanks.remove(i);
+                            i--;
+                        }
                     }
+                    allNewCellsWithSharedBlanks.addAll(newCellsWithSharedBlanks);
+                    cellsWithSharedBlanks.addAll(newCellsWithSharedBlanks);
                 }
             }
+            cellsTocCheck.clear();
+            cellsTocCheck.addAll(allNewCellsWithSharedBlanks);
         }
-        return neighborsWithSharedBlanks;
+        return cellsWithSharedBlanks;
     }
 
     private List<List<Integer>> generateBinarySequences(int size) {
@@ -101,7 +124,8 @@ public class MineSweeperSolver {
         return sequences;
     }
 
-    private List<Map<Pair<Integer, Integer>, Integer>> generateValidVariations(List<Pair<Integer, Integer>> sharedBlanks, List<Pair<Integer, Integer>> sharedOpened) {
+    private List<Map<Pair<Integer, Integer>, Integer>> generateValidVariations(
+            List<Pair<Integer, Integer>> sharedBlanks, List<Pair<Integer, Integer>> sharedBlanksOwners) {
         List<Map<Pair<Integer, Integer>, Integer>> variants = new ArrayList<>();
         List<List<Integer>> sequences = generateBinarySequences(sharedBlanks.size());
         for (int i = 0; i < sequences.size(); i++) {
@@ -112,21 +136,18 @@ public class MineSweeperSolver {
         }
 
         for (int i = 0; i < variants.size(); i++) {
-            //Set<Pair<Integer, Integer>> sharedOpenedSet = new HashSet<>();
-            //variants.get(i).forEach((k, v) -> sharedOpenedSet.addAll(findOpenedCellsNearby(k.getKey(), k.getValue())));
-            //List<Pair<Integer, Integer>> sharedOpenedList = new ArrayList<>(sharedOpened);
-            for (int j = 0; j < sharedOpened.size(); j++) {
+            for (int j = 0; j < sharedBlanksOwners.size(); j++) {
                 List<Pair<Integer, Integer>> minesNearby
-                        = findMinesNearby(sharedOpened.get(j).getKey(), sharedOpened.get(j).getValue());
+                        = findMinesNearby(sharedBlanksOwners.get(j).getKey(), sharedBlanksOwners.get(j).getValue());
                 List<Pair<Integer, Integer>> blankCellsNearby
-                        = findBlankCellsNearby(sharedOpened.get(j).getKey(), sharedOpened.get(j).getValue());
+                        = findBlankCellsNearby(sharedBlanksOwners.get(j).getKey(), sharedBlanksOwners.get(j).getValue());
                 int variantMinesCount = 0;
                 for (Pair<Integer, Integer> bcn : blankCellsNearby) {
                     if (variants.get(i).containsKey(bcn) && variants.get(i).get(bcn) == 1) {
                         variantMinesCount++;
                     }
                 }
-                if (openedCells[sharedOpened.get(j).getKey()][sharedOpened.get(j).getValue()]
+                if (openedCells[sharedBlanksOwners.get(j).getKey()][sharedBlanksOwners.get(j).getValue()]
                         - minesNearby.size() - variantMinesCount != 0) {
                     variants.remove(i);
                     i--;
@@ -134,11 +155,10 @@ public class MineSweeperSolver {
                 }
             }
         }
-
         return variants;
     }
 
-    private Map<Pair<Integer, Integer>, Double> findMineProbabilityForSharedBlanks(List<Map<Pair<Integer, Integer>, Integer>> validVariations) {
+    private Map<Pair<Integer, Integer>, Double> findMineProbabilityForBlanks(List<Map<Pair<Integer, Integer>, Integer>> validVariations) {
         Map<Pair<Integer, Integer>, Double> mineProbabilityForSharedBlanks = new HashMap<>();
         if (!validVariations.isEmpty()) {
             validVariations.get(0).forEach((k, v) -> mineProbabilityForSharedBlanks.put(k, v.doubleValue()));
@@ -159,7 +179,7 @@ public class MineSweeperSolver {
             size = new Pair<>(openedCells.length, openedCells[openedCells.length - 1].length);
         }
         if (mines == null) {
-            mines = new int[size.getKey()][size.getValue()];
+            mines = new double[size.getKey()][size.getValue()];
         }
         if (solved == null) {
             solved = new boolean[size.getKey()][size.getValue()];
@@ -183,7 +203,7 @@ public class MineSweeperSolver {
             }
         }
 
-        Set<Pair<Integer, Integer>> CellsToOpen = new HashSet<>();
+        Set<Pair<Integer, Integer>> cellsToOpen = new HashSet<>();
         for (int x = 0; x < size.getKey(); x++) {
             for (int y = 0; y < size.getValue(); y++) {
                 if (openedCells[x][y] == -1 || openedCells[x][y] == 0 || solved[x][y]) {
@@ -191,61 +211,129 @@ public class MineSweeperSolver {
                 }
                 List<Pair<Integer, Integer>> minesNearby = findMinesNearby(x, y);
                 if (openedCells[x][y] == minesNearby.size()) {
-                    CellsToOpen.addAll(findBlankCellsNearby(x, y));
+                    cellsToOpen.addAll(findBlankCellsNearby(x, y));
                 }
             }
         }
 
-        if (CellsToOpen.isEmpty()) {
-            Set<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> checkedNeighborCombinations = new HashSet<>();
+        if (cellsToOpen.isEmpty()) {
+            Set<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> cellsWithSharedBlanksCombinations = new HashSet<>();
             for (int x = 0; x < size.getKey(); x++) {
                 for (int y = 0; y < size.getValue(); y++) {
                     if (openedCells[x][y] == -1 || openedCells[x][y] == 0 || solved[x][y]) {
                         continue;
                     }
-                    List<Pair<Integer, Integer>> neighborsWithSharedBlanks = findNeighborsWithSharedBlanks(x, y);
-                    for (Pair<Integer, Integer> neighbor : neighborsWithSharedBlanks) {
-                        if (checkedNeighborCombinations.contains(new Pair<>(new Pair<>(x, y), neighbor))
-                                || checkedNeighborCombinations.contains(new Pair<>(neighbor, new Pair<>(x, y)))) {
+                    List<Pair<Integer, Integer>> cellsWithSharedBlanks = findCellsWithSharedBlanks(x, y);
+                    for (Pair<Integer, Integer> cwsb : cellsWithSharedBlanks) {
+                        if (cellsWithSharedBlanksCombinations.contains(new Pair<>(new Pair<>(x, y), cwsb))
+                                || cellsWithSharedBlanksCombinations.contains(new Pair<>(cwsb, new Pair<>(x, y)))) {
                             continue;
                         }
-                        //System.out.println("Pairs: " + x + "=" + y + "; " + neighbor.getKey() + "=" + neighbor.getValue());
                         Set<Pair<Integer, Integer>> sharedBlanks = new HashSet<>();
                         sharedBlanks.addAll(findBlankCellsNearby(x, y));
-                        sharedBlanks.addAll(findBlankCellsNearby(neighbor.getKey(), neighbor.getValue()));
-                        //System.out.println("Shared blanks: " + sharedBlanks);
-                        List<Pair<Integer, Integer>> sharedOpened = new ArrayList<>();
-                        sharedOpened.add(new Pair<>(x, y));
-                        sharedOpened.add(neighbor);
-                        List<Map<Pair<Integer, Integer>, Integer>> validVariations = generateValidVariations(new ArrayList<>(sharedBlanks), sharedOpened);
-                        //System.out.println("Valid variations: " + validVariations);
-                        Map<Pair<Integer, Integer>, Double> mineProbabilityForSharedBlanks = findMineProbabilityForSharedBlanks(validVariations);
-                        //System.out.println("Mine probability: " + mineProbabilityForSharedBlanks);
+                        sharedBlanks.addAll(findBlankCellsNearby(cwsb.getKey(), cwsb.getValue()));
+                        List<Pair<Integer, Integer>> sharedBlanksOwners = new ArrayList<>();
+                        sharedBlanksOwners.add(new Pair<>(x, y));
+                        sharedBlanksOwners.add(cwsb);
+                        List<Map<Pair<Integer, Integer>, Integer>> validVariations = generateValidVariations(new ArrayList<>(sharedBlanks), sharedBlanksOwners);
+                        Map<Pair<Integer, Integer>, Double> mineProbabilityForSharedBlanks = findMineProbabilityForBlanks(validVariations);
                         mineProbabilityForSharedBlanks.forEach((k, v) -> {
                             if (v == 1) {
                                 mines[k.getKey()][k.getValue()] = 1;
                             } else if (v == 0) {
-                                CellsToOpen.add(k);
+                                cellsToOpen.add(k);
                             }
                         });
-                        checkedNeighborCombinations.add(new Pair<>(new Pair<>(x, y), neighbor));
+                        cellsWithSharedBlanksCombinations.add(new Pair<>(new Pair<>(x, y), cwsb));
                     }
                 }
             }
         }
 
-        if (CellsToOpen.isEmpty()) {
+        if (cellsToOpen.isEmpty()) {
+            List<List<Pair<Integer, Integer>>> islandsBySharedBlanks = new ArrayList<>();
+            for (int x = 0; x < size.getKey(); x++) {
+                for (int y = 0; y < size.getValue(); y++) {
+
+                    if (openedCells[x][y] <= 0 || solved[x][y]) {
+                        continue;
+                    }
+                    boolean toContinue = false;
+                    for (List<Pair<Integer, Integer>> cellsWithSharedBlanks : islandsBySharedBlanks) {
+                        if (cellsWithSharedBlanks.contains(new Pair<>(x, y))) {
+                            toContinue = true;
+                            break;
+                        }
+                    }
+                    if (toContinue) {
+                        continue;
+                    }
+
+                    islandsBySharedBlanks.add(findAllCellsBySharedBlanks(x, y));
+                }
+            }
+
+            boolean exit = false;
+            while (!exit) {
+                exit = true;
+                for (int i = 0; i < islandsBySharedBlanks.size(); i++) {
+                    if (islandsBySharedBlanks.get(i).size() > 9) {
+                        islandsBySharedBlanks.add(islandsBySharedBlanks.get(i).subList(0, islandsBySharedBlanks.get(i).size() / 2));
+                        islandsBySharedBlanks.add(islandsBySharedBlanks.get(i).subList(islandsBySharedBlanks.get(i).size() / 2, islandsBySharedBlanks.get(i).size()));
+                        islandsBySharedBlanks.remove(i);
+                        exit = false;
+                        break;
+                    }
+                }
+            }
+
+            List<List<Pair<Integer, Integer>>> sharedBlanksForIslands = new ArrayList<>();
+            for (List<Pair<Integer, Integer>> cellsWithSharedBlanks : islandsBySharedBlanks) {
+                Set<Pair<Integer, Integer>> sharedBlanksForCells = new HashSet<>();
+                for (Pair<Integer, Integer> cell : cellsWithSharedBlanks) {
+                    sharedBlanksForCells.addAll(findBlankCellsNearby(cell.getKey(), cell.getValue()));
+                }
+                sharedBlanksForIslands.add(new ArrayList<>(sharedBlanksForCells));
+            }
+            List<List<Map<Pair<Integer, Integer>, Integer>>> validVariationsForIslands = new ArrayList<>();
+            for (int i = 0; i < sharedBlanksForIslands.size(); i++) {
+                validVariationsForIslands.add(generateValidVariations(sharedBlanksForIslands.get(i), islandsBySharedBlanks.get(i)));
+            }
+            List<Map<Pair<Integer, Integer>, Double>> mineProbabilityForIslands = new ArrayList<>();
+            for (List<Map<Pair<Integer, Integer>, Integer>> validVariationsForCells : validVariationsForIslands) {
+                mineProbabilityForIslands.add(findMineProbabilityForBlanks(validVariationsForCells));
+            }
+
+            Pair<Integer, Integer> cellWithMinMineProbability;
+            Double minProbability;
+            mineProbabilityForIslands.forEach((mineProbabilityForSharedBlanks) ->
+                    mineProbabilityForSharedBlanks.forEach((k, v) -> {
+                        if (minProbability == null){
+
+                        }
+                        if (v == 1) {
+                            mines[k.getKey()][k.getValue()] = 1;
+                        } else if (v == 0) {
+                            cellsToOpen.add(k);
+                        }
+                    }));
+
+            // TODO empty cells probability
+            // TODO use total mine count
+        }
+
+        if (cellsToOpen.isEmpty()) {
             for (int x = 0; x < size.getKey(); x++) {
                 for (int y = 0; y < size.getValue(); y++) {
                     if (openedCells[x][y] == -1 && mines[x][y] != 1) {
-                        CellsToOpen.add(new Pair<>(x, y));
-                        return CellsToOpen.toArray(new Pair[0]);
+                        cellsToOpen.add(new Pair<>(x, y));
+                        return cellsToOpen.toArray(new Pair[0]);
                     }
                 }
             }
         }
 
         //TODO check duplicates
-        return CellsToOpen.toArray(new Pair[0]);
+        return cellsToOpen.toArray(new Pair[0]);
     }
 }

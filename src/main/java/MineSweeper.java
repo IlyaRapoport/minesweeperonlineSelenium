@@ -16,10 +16,6 @@ public class MineSweeper {
 
     public static WebDriver driver;
 
-    private static boolean checkGridBorder(int x, int y, Pair<Integer, Integer> size) {
-        return x >= 0 && y >= 0 && x < size.getKey() && y < size.getValue();
-    }
-
     public static void main(String[] args) {
 
 
@@ -27,13 +23,14 @@ public class MineSweeper {
 //        DesiredCapabilities capabilities = DesiredCapabilities.firefox();
 //        capabilities.setCapability("marionette",true);
   //      driver= new FirefoxDriver();
+        // TODO slow firefox fix
         System.setProperty("webdriver.chrome.driver", libWithDriversLocation + "chromedriver.exe");
         driver = new ChromeDriver();
         driver.manage().window().maximize();
 
         driver.get("http://minesweeperonline.com/");
 
-       // custom();
+       custom();
 
 
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
@@ -87,11 +84,11 @@ public class MineSweeper {
         driver.findElement(By.xpath("//*[@title='game options']")).click();
         driver.findElement(By.id("custom")).click();
         driver.findElement(By.id("custom_height")).clear();
-        driver.findElement(By.id("custom_height")).sendKeys("99");
+        driver.findElement(By.id("custom_height")).sendKeys("50");
         driver.findElement(By.id("custom_width")).clear();
-        driver.findElement(By.id("custom_width")).sendKeys("99");
+        driver.findElement(By.id("custom_width")).sendKeys("50");
         driver.findElement(By.id("custom_mines")).clear();
-        driver.findElement(By.id("custom_mines")).sendKeys("500");
+        driver.findElement(By.id("custom_mines")).sendKeys("700");
 
         driver.findElement(By.xpath("//*[@value='New Game']")).click();
 
@@ -122,7 +119,7 @@ public class MineSweeper {
     public static void findElements(int cx, int cy) {
         for (int x1 = -1; x1 <= 1; x1++) {
             for (int y1 = -1; y1 <= 1; y1++) {
-                if (x1 == 0 && y1 == 0 || !checkGridBorder(cx + x1, cy + y1, new Pair<>(x, y))) {
+                if (x1 == 0 && y1 == 0 || !MineSweeperSolver.checkGridBorder(cx + x1, cy + y1, new Pair<>(x, y))) {
                     continue;
                 }
                 if (checkSquare(cx + x1, cy + y1)) {
