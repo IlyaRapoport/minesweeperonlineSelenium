@@ -33,7 +33,7 @@ public class MineSweeper {
 
         driver.get("http://minesweeperonline.com/");
 
-        custom();
+       // custom();
 
 
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
@@ -58,7 +58,7 @@ public class MineSweeper {
             findElements(squaresToClick);
         }
 
-        driver.quit();
+        // driver.quit();
 
     }
 

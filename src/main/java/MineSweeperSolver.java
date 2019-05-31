@@ -211,11 +211,15 @@ public class MineSweeperSolver {
                                 || checkedNeighborCombinations.contains(new Pair<>(neighbor, new Pair<>(x, y)))) {
                             continue;
                         }
+                        //System.out.println("Pairs: " + x + "=" + y + "; " + neighbor.getKey() + "=" + neighbor.getValue());
                         Set<Pair<Integer, Integer>> sharedBlanks = new HashSet<>();
                         sharedBlanks.addAll(findBlankCellsNearby(x, y));
                         sharedBlanks.addAll(findBlankCellsNearby(neighbor.getKey(), neighbor.getValue()));
+                        //System.out.println("Shared blanks: " + sharedBlanks);
                         List<Map<Pair<Integer, Integer>, Integer>> validVariations = generateValidVariations(new ArrayList<>(sharedBlanks));
+                        //System.out.println("Valid variations: " + validVariations);
                         Map<Pair<Integer, Integer>, Double> mineProbabilityForSharedBlanks = findMineProbabilityForSharedBlanks(validVariations);
+                        //System.out.println("Mine probability: " + mineProbabilityForSharedBlanks);
                         mineProbabilityForSharedBlanks.forEach((k, v) -> {
                             if (v == 1) {
                                 mines[k.getKey()][k.getValue()] = 1;
