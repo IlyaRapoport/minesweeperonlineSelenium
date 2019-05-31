@@ -15,6 +15,7 @@ public class MineSweeper {
     public static String sourceHTML;
 
     public static WebDriver driver;
+    public static int totalMine;
 
     private static boolean checkGridBorder(int x, int y, Pair<Integer, Integer> size) {
         return x >= 0 && y >= 0 && x < size.getKey() && y < size.getValue();
@@ -22,18 +23,22 @@ public class MineSweeper {
 
     public static void main(String[] args) {
 
+/*
+        System.setProperty("webdriver.gecko.driver", libWithDriversLocation + "geckodriver.exe");
+       // DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+       // capabilities.setCapability("marionette", true);
+        driver = new FirefoxDriver();
+*/
 
- //       System.setProperty("webdriver.gecko.driver", libWithDriversLocation + "geckodriver.exe");
-//        DesiredCapabilities capabilities = DesiredCapabilities.firefox();
-//        capabilities.setCapability("marionette",true);
-  //      driver= new FirefoxDriver();
         System.setProperty("webdriver.chrome.driver", libWithDriversLocation + "chromedriver.exe");
         driver = new ChromeDriver();
+
+
         driver.manage().window().maximize();
 
         driver.get("http://minesweeperonline.com/");
 
-       // custom();
+         custom();
 
 
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
@@ -49,6 +54,7 @@ public class MineSweeper {
         Pair[] firstClick = {new Pair<>(x / 2, y / 2)};
         findElements(firstClick);
 
+        totalMine();
 
         MineSweeperSolver mss = new MineSweeperSolver();
         while (!driver.findElement(By.id("face")).getAttribute("class").equals("facewin")
@@ -58,8 +64,22 @@ public class MineSweeper {
             findElements(squaresToClick);
         }
 
+
         // driver.quit();
 
+    }
+
+    private static int totalMine() {
+        String mine100 = driver.findElement(By.id("mines_hundreds")).getAttribute("class");
+        String mine10 = driver.findElement(By.id("mines_tens")).getAttribute("class");
+        String mine1 = driver.findElement(By.id("mines_ones")).getAttribute("class");
+        for (int i = 1; i <= 9; i++) {
+            if (mine100.equals("time" + i)) totalMine = totalMine + (i * 100);
+            if (mine10.equals("time" + i)) totalMine = totalMine + (i * 10);
+            if (mine1.equals("time" + i)) totalMine = totalMine + (i);
+        }
+
+        return totalMine;
     }
 
     public static boolean isAlertPresent() {
@@ -91,7 +111,7 @@ public class MineSweeper {
         driver.findElement(By.id("custom_width")).clear();
         driver.findElement(By.id("custom_width")).sendKeys("99");
         driver.findElement(By.id("custom_mines")).clear();
-        driver.findElement(By.id("custom_mines")).sendKeys("500");
+        driver.findElement(By.id("custom_mines")).sendKeys("700");
 
         driver.findElement(By.xpath("//*[@value='New Game']")).click();
 
