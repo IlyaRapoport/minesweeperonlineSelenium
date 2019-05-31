@@ -101,7 +101,7 @@ public class MineSweeperSolver {
         return sequences;
     }
 
-    private List<Map<Pair<Integer, Integer>, Integer>> generateValidVariations(List<Pair<Integer, Integer>> sharedBlanks) {
+    private List<Map<Pair<Integer, Integer>, Integer>> generateValidVariations(List<Pair<Integer, Integer>> sharedBlanks, List<Pair<Integer, Integer>> sharedOpened) {
         List<Map<Pair<Integer, Integer>, Integer>> variants = new ArrayList<>();
         List<List<Integer>> sequences = generateBinarySequences(sharedBlanks.size());
         for (int i = 0; i < sequences.size(); i++) {
@@ -112,24 +112,22 @@ public class MineSweeperSolver {
         }
 
         for (int i = 0; i < variants.size(); i++) {
-            Set<Pair<Integer, Integer>> sharedOpened = new HashSet<>();
-            variants.get(i).forEach((k, v) -> sharedOpened.addAll(findOpenedCellsNearby(k.getKey(), k.getValue())));
-            List<Pair<Integer, Integer>> sharedOpenedList = new ArrayList<>(sharedOpened);
-            for (int j = 0; j < sharedOpenedList.size(); j++) {
+            //Set<Pair<Integer, Integer>> sharedOpenedSet = new HashSet<>();
+            //variants.get(i).forEach((k, v) -> sharedOpenedSet.addAll(findOpenedCellsNearby(k.getKey(), k.getValue())));
+            //List<Pair<Integer, Integer>> sharedOpenedList = new ArrayList<>(sharedOpened);
+            for (int j = 0; j < sharedOpened.size(); j++) {
                 List<Pair<Integer, Integer>> minesNearby
-                        = findMinesNearby(sharedOpenedList.get(j).getKey(), sharedOpenedList.get(j).getValue());
+                        = findMinesNearby(sharedOpened.get(j).getKey(), sharedOpened.get(j).getValue());
                 List<Pair<Integer, Integer>> blankCellsNearby
-                        = findBlankCellsNearby(sharedOpenedList.get(j).getKey(), sharedOpenedList.get(j).getValue());
+                        = findBlankCellsNearby(sharedOpened.get(j).getKey(), sharedOpened.get(j).getValue());
                 int variantMinesCount = 0;
                 for (Pair<Integer, Integer> bcn : blankCellsNearby) {
                     if (variants.get(i).containsKey(bcn) && variants.get(i).get(bcn) == 1) {
                         variantMinesCount++;
                     }
                 }
-                if (openedCells[sharedOpenedList.get(j).getKey()][sharedOpenedList.get(j).getValue()]
-                        - minesNearby.size() - variantMinesCount < 0
-                        || openedCells[sharedOpenedList.get(j).getKey()][sharedOpenedList.get(j).getValue()]
-                        - minesNearby.size() >= blankCellsNearby.size() - variantMinesCount) {
+                if (openedCells[sharedOpened.get(j).getKey()][sharedOpened.get(j).getValue()]
+                        - minesNearby.size() - variantMinesCount != 0) {
                     variants.remove(i);
                     i--;
                     break;
@@ -216,7 +214,10 @@ public class MineSweeperSolver {
                         sharedBlanks.addAll(findBlankCellsNearby(x, y));
                         sharedBlanks.addAll(findBlankCellsNearby(neighbor.getKey(), neighbor.getValue()));
                         //System.out.println("Shared blanks: " + sharedBlanks);
-                        List<Map<Pair<Integer, Integer>, Integer>> validVariations = generateValidVariations(new ArrayList<>(sharedBlanks));
+                        List<Pair<Integer, Integer>> sharedOpened = new ArrayList<>();
+                        sharedOpened.add(new Pair<>(x, y));
+                        sharedOpened.add(neighbor);
+                        List<Map<Pair<Integer, Integer>, Integer>> validVariations = generateValidVariations(new ArrayList<>(sharedBlanks), sharedOpened);
                         //System.out.println("Valid variations: " + validVariations);
                         Map<Pair<Integer, Integer>, Double> mineProbabilityForSharedBlanks = findMineProbabilityForSharedBlanks(validVariations);
                         //System.out.println("Mine probability: " + mineProbabilityForSharedBlanks);
