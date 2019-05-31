@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.seleniumhq.selenium:selenium-geckodriver-driver:unknown">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/seleniumhq/selenium/selenium-geckodriver-driver/unknown/selenium-geckodriver-driver-unknown.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/seleniumhq/selenium/selenium-geckodriver-driver/unknown/selenium-geckodriver-driver-unknown-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/seleniumhq/selenium/selenium-geckodriver-driver/unknown/selenium-geckodriver-driver-unknown-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

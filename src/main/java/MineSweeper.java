@@ -38,7 +38,7 @@ public class MineSweeper {
 
         driver.get("http://minesweeperonline.com/");
 
-         custom();
+       //  custom();
 
 
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
@@ -54,9 +54,7 @@ public class MineSweeper {
         Pair[] firstClick = {new Pair<>(x / 2, y / 2)};
         findElements(firstClick);
 
-        totalMine();
-
-        MineSweeperSolver mss = new MineSweeperSolver();
+        MineSweeperSolver mss = new MineSweeperSolver(totalMine());
         while (!driver.findElement(By.id("face")).getAttribute("class").equals("facewin")
                 && !driver.findElement(By.id("face")).getAttribute("class").equals("facedead")) {
             Pair<Integer, Integer>[] squaresToClick = mss.solve(field);
@@ -90,6 +88,7 @@ public class MineSweeper {
             return true;
         } catch (NoAlertPresentException Ex) {
             return false;
+
         }
 
     }
@@ -107,11 +106,11 @@ public class MineSweeper {
         driver.findElement(By.xpath("//*[@title='game options']")).click();
         driver.findElement(By.id("custom")).click();
         driver.findElement(By.id("custom_height")).clear();
-        driver.findElement(By.id("custom_height")).sendKeys("99");
+        driver.findElement(By.id("custom_height")).sendKeys("50");
         driver.findElement(By.id("custom_width")).clear();
-        driver.findElement(By.id("custom_width")).sendKeys("99");
+        driver.findElement(By.id("custom_width")).sendKeys("50");
         driver.findElement(By.id("custom_mines")).clear();
-        driver.findElement(By.id("custom_mines")).sendKeys("700");
+        driver.findElement(By.id("custom_mines")).sendKeys("650");
 
         driver.findElement(By.xpath("//*[@value='New Game']")).click();
 

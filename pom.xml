@@ -36,8 +36,8 @@
 
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-remote-driver</artifactId>
-            <version>3.141.59</version>
+            <artifactId>selenium-geckodriver-driver</artifactId>
+
         </dependency>
 
 
