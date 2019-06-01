@@ -26,7 +26,7 @@ public class MineSweeper {
         driver.manage().window().maximize();
         driver.get("http://minesweeperonline.com/");
 
-        setCustomGame(50, 50, 700);
+        //setCustomGame(50, 50, 700);
 
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
         String[] splittedLastElement = dimensions.split("_");
@@ -64,7 +64,6 @@ public class MineSweeper {
 
     private static void setCustomGame(int sizeX, int sizeY, int mineCount) {
         driver.findElement(By.cssSelector("[title='game options']")).click();
-        driver.findElement(By.id("setCustomGame")).click();
         driver.findElement(By.id("custom_height")).clear();
         driver.findElement(By.id("custom_height")).sendKeys(String.valueOf(sizeY));
         driver.findElement(By.id("custom_width")).clear();
@@ -76,7 +75,7 @@ public class MineSweeper {
 
     private static void click(Cell[] cellsToClick) {
         for (Cell cell : cellsToClick) {
-            driver.findElement(By.id((cell.getX() + 1) + "_" + (cell.getY() + 1))).click();
+            driver.findElement(By.id((cell.getY() + 1) + "_" + (cell.getX() + 1))).click();
 
             try {
                 Alert alert = driver.switchTo().alert();
@@ -100,7 +99,7 @@ public class MineSweeper {
 
     private static void findElements(Cell cell) {
         msSolver.getGrid().forEachCellsAround(cell, (cellNearby) -> {
-            if (cellNearby.isUndefined() && checkCell(cellNearby)) {
+            if (field[cellNearby.getX()][cellNearby.getY()] == -1 && checkCell(cellNearby)) {
                 findElements(cellNearby);
             }
         });

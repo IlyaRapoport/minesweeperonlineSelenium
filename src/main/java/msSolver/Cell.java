@@ -1,6 +1,6 @@
 package msSolver;
 
-public class Cell {
+public class Cell implements Comparable<Cell> {
     private final int x;
     private final int y;
     private Double mineProbability = null;
@@ -25,7 +25,7 @@ public class Cell {
     }
 
     void setMineProbability(double mineProbability) throws IllegalArgumentException {
-        if (this.mineProbability == 0 || this.mineProbability == 1) {
+        if (this.mineProbability != null && (this.mineProbability == 0 || this.mineProbability == 1)) {
             throw new IllegalArgumentException(String.format("Mine probability is already certain at %d:%d", x, y));
         }
         this.mineProbability = mineProbability;
@@ -35,7 +35,7 @@ public class Cell {
     }
 
     public boolean isMine() {
-        return mineProbability == 1;
+        return mineProbability != null && mineProbability == 1;
     }
 
     public Integer getMineIndicator() {
@@ -62,7 +62,7 @@ public class Cell {
     }
 
     public boolean isUndefined() {
-        return mineIndicator == null && mineProbability != 1;
+        return mineIndicator == null && (mineProbability == null || mineProbability != 1);
     }
 
     public boolean isSolved() {
@@ -91,5 +91,13 @@ public class Cell {
     @Override
     public boolean equals(Object o) {
         return this == o;
+    }
+
+    @Override
+    public int compareTo(Cell o) {
+        if (this.x == o.getX()) {
+            return this.y - o.getY();
+        }
+        return this.x - o.getX();
     }
 }

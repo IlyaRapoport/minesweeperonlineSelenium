@@ -36,7 +36,7 @@ public class Grid implements Iterable<Cell> {
 
     void updateGrid(int[][] grid) {
         for (Cell cell : this) {
-            if (cell.isSolved() || cell.isRevealed()) {
+            if (cell.isSolved() || cell.isRevealed() || grid[cell.getX()][cell.getY()] == -1) {
                 continue;
             }
             cell.setMineIndicator(grid[cell.getX()][cell.getY()]);
@@ -50,39 +50,54 @@ public class Grid implements Iterable<Cell> {
     public List<Cell> findMinesNearby(Cell cell) {
         List<Cell> minesNearby = new ArrayList<>();
         forEachCellsAround(cell, (cellNearby) -> {
-            if(cellNearby.isMine()){
+            if (cellNearby.isMine()) {
                 minesNearby.add(cellNearby);
             }
         });
         return minesNearby;
     }
 
-    public List<Cell> findUndefinedCellsNearby(Cell cell) {
+    public List<Cell> findUndefinedNearby(Cell cell) {
         List<Cell> undefinedNearby = new ArrayList<>();
         forEachCellsAround(cell, (cellNearby) -> {
-            if(cellNearby.isUndefined()){
+            if (cellNearby.isUndefined()) {
                 undefinedNearby.add(cellNearby);
             }
         });
         return undefinedNearby;
     }
 
-    public List<Cell> findRevealedCellsNearby(Cell cell) {
+    public List<Cell> findRevealedNearby(Cell cell) {
         List<Cell> revealedNearby = new ArrayList<>();
         forEachCellsAround(cell, (cellNearby) -> {
-            if(cellNearby.isRevealed()){
+            if (cellNearby.isRevealed()) {
                 revealedNearby.add(cellNearby);
             }
         });
         return revealedNearby;
     }
 
+    public List<Cell> findCellsBySharedUndefined(Cell cell) {
+        Set<Cell> cellsBySharedUndefined = new HashSet<>();
+        List<Cell> undefinedNearby = findUndefinedNearby(cell);
+        for (Cell undefinedCell : undefinedNearby) {
+            cellsBySharedUndefined.addAll(findRevealedNearby(undefinedCell));
+        }
+        cellsBySharedUndefined.remove(cell);
+        return new ArrayList<>(cellsBySharedUndefined);
+    }
+
     @Override
     public String toString() {
         StringBuilder gridToString = new StringBuilder("\n");
-        for (int x = 0; x < this.sizeX; x++) {
-            StringJoiner sj = new StringJoiner(" ", "", "\n");
-            for (int y = 0; y < this.sizeY; y++) {
+        StringJoiner sj = new StringJoiner(" ", "   ", "\n");
+        for (int i = 0; i < sizeX; i++) {
+            sj.add(i + (i < 10 ? " " : ""));
+        }
+        gridToString.append(sj);
+        for (int y = 0; y < this.sizeY; y++) {
+            sj = new StringJoiner("  ", y + (y < 10 ? "  " : " "), "\n");
+            for (int x = 0; x < this.sizeX; x++) {
                 sj.add(grid[x][y].charRepresentation());
             }
             gridToString.append(sj);
@@ -121,7 +136,10 @@ public class Grid implements Iterable<Cell> {
 
         @Override
         public boolean hasNext() {
-            return indexX < sizeX();
+            if (indexY == sizeY()) {
+                return indexX < sizeX() - 1;
+            }
+            return true;
         }
 
         @Override
