@@ -1,3 +1,5 @@
+package old;
+
 import javafx.util.Pair;
 
 import java.util.*;
@@ -10,6 +12,7 @@ public class MineSweeperSolver {
     private Integer totalMinesAmount;
 
     public MineSweeperSolver() {
+        totalMinesAmount = null;
     }
 
     public MineSweeperSolver(int totalMinesAmount) {
@@ -124,6 +127,7 @@ public class MineSweeperSolver {
         return sequences;
     }
 
+    //TODO optimize
     private List<Map<Pair<Integer, Integer>, Integer>> generateValidVariations(
             List<Pair<Integer, Integer>> sharedBlanks, List<Pair<Integer, Integer>> sharedBlanksOwners) {
         List<Map<Pair<Integer, Integer>, Integer>> variants = new ArrayList<>();
@@ -187,7 +191,7 @@ public class MineSweeperSolver {
 
         for (int x = 0; x < size.getKey(); x++) {
             for (int y = 0; y < size.getValue(); y++) {
-                if (openedCells[x][y] == -1 || openedCells[x][y] == 0 || solved[x][y]) {
+                if (openedCells[x][y] <= 0 || solved[x][y]) {
                     continue;
                 }
                 List<Pair<Integer, Integer>> minesNearby = findMinesNearby(x, y);
@@ -206,7 +210,7 @@ public class MineSweeperSolver {
         Set<Pair<Integer, Integer>> cellsToOpen = new HashSet<>();
         for (int x = 0; x < size.getKey(); x++) {
             for (int y = 0; y < size.getValue(); y++) {
-                if (openedCells[x][y] == -1 || openedCells[x][y] == 0 || solved[x][y]) {
+                if (openedCells[x][y] <= 0 || solved[x][y]) {
                     continue;
                 }
                 List<Pair<Integer, Integer>> minesNearby = findMinesNearby(x, y);
@@ -220,7 +224,7 @@ public class MineSweeperSolver {
             Set<Pair<Pair<Integer, Integer>, Pair<Integer, Integer>>> cellsWithSharedBlanksCombinations = new HashSet<>();
             for (int x = 0; x < size.getKey(); x++) {
                 for (int y = 0; y < size.getValue(); y++) {
-                    if (openedCells[x][y] == -1 || openedCells[x][y] == 0 || solved[x][y]) {
+                    if (openedCells[x][y] <= 0 || solved[x][y]) {
                         continue;
                     }
                     List<Pair<Integer, Integer>> cellsWithSharedBlanks = findCellsWithSharedBlanks(x, y);
@@ -250,6 +254,7 @@ public class MineSweeperSolver {
             }
         }
 
+        //TODO optimize
         if (cellsToOpen.isEmpty()) {
             List<List<Pair<Integer, Integer>>> islandsBySharedBlanks = new ArrayList<>();
             for (int x = 0; x < size.getKey(); x++) {
@@ -304,22 +309,28 @@ public class MineSweeperSolver {
                 mineProbabilityForIslands.add(findMineProbabilityForBlanks(validVariationsForCells));
             }
 
-            Pair<Integer, Integer> cellWithMinMineProbability;
-            Double minProbability;
-            mineProbabilityForIslands.forEach((mineProbabilityForSharedBlanks) ->
-                    mineProbabilityForSharedBlanks.forEach((k, v) -> {
-                        if (minProbability == null){
-
-                        }
-                        if (v == 1) {
-                            mines[k.getKey()][k.getValue()] = 1;
-                        } else if (v == 0) {
-                            cellsToOpen.add(k);
-                        }
-                    }));
+            Pair<Integer, Integer> cellWithMinMineProbability = null;
+            Double minProbability = null;
+            for (Map<Pair<Integer, Integer>, Double> mineProbabilityForSharedBlanks : mineProbabilityForIslands) {
+                for (Map.Entry<Pair<Integer, Integer>, Double> mpfsb : mineProbabilityForSharedBlanks.entrySet()) {
+                    if (minProbability == null || minProbability > mpfsb.getValue()) {
+                        minProbability = mpfsb.getValue();
+                        cellWithMinMineProbability = mpfsb.getKey();
+                    }
+                    if (mpfsb.getValue() == 1) {
+                        mines[mpfsb.getKey().getKey()][mpfsb.getKey().getValue()] = 1;
+                    } else if (mpfsb.getValue() == 0) {
+                        cellsToOpen.add(mpfsb.getKey());
+                    }
+                }
+            }
 
             // TODO empty cells probability
             // TODO use total mine count
+
+            if (cellsToOpen.isEmpty() && cellWithMinMineProbability != null){
+                cellsToOpen.add(cellWithMinMineProbability);
+            }
         }
 
         if (cellsToOpen.isEmpty()) {

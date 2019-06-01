@@ -1,192 +1,119 @@
-import javafx.util.Pair;
+import msSolver.*;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.remote.DesiredCapabilities;
 
 public class MineSweeper {
-    public static String libWithDriversLocation = System.getProperty("user.dir") + "\\src\\main\\resources\\";
-    public static int x;
-    public static int y;
-    public static int[][] field;
-    public static String sourceHTML;
-
-    public static WebDriver driver;
+    private static String libWithDriversLocation = System.getProperty("user.dir") + "\\src\\main\\resources\\";
+    private static int[][] field;
+    private static String sourceHTML;
+    private static WebDriver driver;
+    private static MineSweeperSolver msSolver;
 
     public static void main(String[] args) {
 
-
- //       System.setProperty("webdriver.gecko.driver", libWithDriversLocation + "geckodriver.exe");
+        // TODO slow firefox fix
+//        System.setProperty("webdriver.gecko.driver", libWithDriversLocation + "geckodriver.exe");
 //        DesiredCapabilities capabilities = DesiredCapabilities.firefox();
 //        capabilities.setCapability("marionette",true);
-  //      driver= new FirefoxDriver();
-        // TODO slow firefox fix
+//        driver= new FirefoxDriver();
+
         System.setProperty("webdriver.chrome.driver", libWithDriversLocation + "chromedriver.exe");
         driver = new ChromeDriver();
-        driver.manage().window().maximize();
 
+        driver.manage().window().maximize();
         driver.get("http://minesweeperonline.com/");
 
-       custom();
-
+        setCustomGame(50, 50, 700);
 
         String dimensions = driver.findElement(By.cssSelector("#game div:last-child")).getAttribute("id");
+        String[] splittedLastElement = dimensions.split("_");
+        int sizeY = Integer.parseInt(splittedLastElement[0]);
+        int sizeX = Integer.parseInt(splittedLastElement[1]) - 1;
 
-        String[] splitedLasteelement = dimensions.split("_");
+        field = new int[sizeX][sizeY];
+        for (int x = 0; x < sizeX; x++) {
+            for (int y = 0; y < sizeY; y++) {
+                field[x][y] = -1;
+            }
+        }
 
-        y = Integer.parseInt(splitedLasteelement[0]);
-        x = Integer.parseInt(splitedLasteelement[1]) - 1;
-        field = new int[x][y];
-        findElementsFirst();
-        click();
+        char mines100s = driver.findElement(By.id("mines_hundreds")).getAttribute("class").charAt(4);
+        char mines10s = driver.findElement(By.id("mines_tens")).getAttribute("class").charAt(4);
+        char mines1s = driver.findElement(By.id("mines_ones")).getAttribute("class").charAt(4);
+        int totalMinesAmount = Character.getNumericValue(mines100s) * 100
+                + Character.getNumericValue(mines10s) * 10
+                + Character.getNumericValue(mines1s);
 
-        Pair[] firstClick = {new Pair<>(x / 2, y / 2)};
+        msSolver = new MineSweeperSolver(sizeX, sizeY, totalMinesAmount);
+        Cell[] firstClick = {msSolver.getCell(sizeX / 2, sizeY / 2)};
+        click(firstClick);
         findElements(firstClick);
 
-
-        MineSweeperSolver mss = new MineSweeperSolver();
         while (!driver.findElement(By.id("face")).getAttribute("class").equals("facewin")
                 && !driver.findElement(By.id("face")).getAttribute("class").equals("facedead")) {
-            Pair<Integer, Integer>[] squaresToClick = mss.solve(field);
-            click(squaresToClick);
-            findElements(squaresToClick);
+            Cell[] cellsToClick = msSolver.solve(field);
+            click(cellsToClick);
+            findElements(cellsToClick);
         }
 
         // driver.quit();
-
     }
 
-    public static boolean isAlertPresent() {
-
-        try {
-            driver.switchTo().alert();
-
-            return true;
-        } catch (NoAlertPresentException Ex) {
-            return false;
-        }
-
-    }
-
-
-    private static void findElementsFirst() {
-        for (int i = 1; i <= y; i++) {
-            for (int j = 1; j <= x; j++) {
-                field[j - 1][i - 1] = -1;
-            }
-        }
-    }
-
-    private static void custom() {
-        driver.findElement(By.xpath("//*[@title='game options']")).click();
-        driver.findElement(By.id("custom")).click();
+    private static void setCustomGame(int sizeX, int sizeY, int mineCount) {
+        driver.findElement(By.cssSelector("[title='game options']")).click();
+        driver.findElement(By.id("setCustomGame")).click();
         driver.findElement(By.id("custom_height")).clear();
-        driver.findElement(By.id("custom_height")).sendKeys("50");
+        driver.findElement(By.id("custom_height")).sendKeys(String.valueOf(sizeY));
         driver.findElement(By.id("custom_width")).clear();
-        driver.findElement(By.id("custom_width")).sendKeys("50");
+        driver.findElement(By.id("custom_width")).sendKeys(String.valueOf(sizeX));
         driver.findElement(By.id("custom_mines")).clear();
-        driver.findElement(By.id("custom_mines")).sendKeys("700");
-
-        driver.findElement(By.xpath("//*[@value='New Game']")).click();
-
+        driver.findElement(By.id("custom_mines")).sendKeys(String.valueOf(mineCount));
+        driver.findElement(By.cssSelector("[value='New Game']")).click();
     }
 
-    public static void findElements(Pair<Integer, Integer>[] squaresToClick) {
-        if (!isAlertPresent()) {
-            sourceHTML = driver.getPageSource();
-            sourceHTML = sourceHTML.substring(sourceHTML.indexOf("id=\"game\""), sourceHTML.indexOf("display: none;"));
+    private static void click(Cell[] cellsToClick) {
+        for (Cell cell : cellsToClick) {
+            driver.findElement(By.id((cell.getX() + 1) + "_" + (cell.getY() + 1))).click();
 
-            for (Pair<Integer, Integer> clickedSquare : squaresToClick) {
-                checkSquare(clickedSquare.getKey(), clickedSquare.getValue());
-                findElements(clickedSquare.getKey(), clickedSquare.getValue());
-            }
-        } else fillAlert();
-    }
-
-    private static void fillAlert() {
-
-        Alert alert = driver.switchTo().alert();
-
-        alert.sendKeys("Selenium");
-
-
-        alert.accept();
-    }
-
-    public static void findElements(int cx, int cy) {
-        for (int x1 = -1; x1 <= 1; x1++) {
-            for (int y1 = -1; y1 <= 1; y1++) {
-                if (x1 == 0 && y1 == 0 || !MineSweeperSolver.checkGridBorder(cx + x1, cy + y1, new Pair<>(x, y))) {
-                    continue;
-                }
-                if (checkSquare(cx + x1, cy + y1)) {
-                    findElements(cx + x1, cy + y1);
-                }
+            try {
+                Alert alert = driver.switchTo().alert();
+                alert.sendKeys("Selenium");
+                alert.accept();
+                break;
+            } catch (NoAlertPresentException Ex) {
             }
         }
     }
 
-    public static boolean checkSquare(int cx, int cy) {
-        if (field[cx][cy] != -1) {
+    private static void findElements(Cell[] cellsToClick) {
+        sourceHTML = driver.getPageSource();
+        sourceHTML = sourceHTML.substring(sourceHTML.indexOf("id=\"game\""), sourceHTML.indexOf("display: none;"));
+
+        for (Cell cell : cellsToClick) {
+            checkCell(cell);
+            findElements(cell);
+        }
+    }
+
+    private static void findElements(Cell cell) {
+        msSolver.getGrid().forEachCellsAround(cell, (cellNearby) -> {
+            if (cellNearby.isUndefined() && checkCell(cellNearby)) {
+                findElements(cellNearby);
+            }
+        });
+    }
+
+    private static boolean checkCell(Cell cell) {
+        int index = sourceHTML.indexOf("\" id=\"" + (cell.getY() + 1) + "_" + (cell.getX() + 1) + "\"") - 1;
+        char ch = sourceHTML.charAt(index);
+        if (ch == 'k') {
             return false;
+        } else {
+            field[cell.getX()][cell.getY()] = Character.getNumericValue(ch);
+            return true;
         }
-        int index = sourceHTML.indexOf("\" id=\"" + (cy + 1) + "_" + (cx + 1) + "\"") - 1;
-        switch (sourceHTML.charAt(index)) {
-            case 'k': {
-                return false;
-            }
-            case '0': {
-                field[cx][cy] = 0;
-                return true;
-            }
-            case '1': {
-                field[cx][cy] = 1;
-                return true;
-            }
-            case '2': {
-                field[cx][cy] = 2;
-                return true;
-            }
-            case '3': {
-                field[cx][cy] = 3;
-                return true;
-            }
-            case '4': {
-                field[cx][cy] = 4;
-                return true;
-            }
-            case '5': {
-                field[cx][cy] = 5;
-                return true;
-            }
-            case '6': {
-                field[cx][cy] = 6;
-                return true;
-            }
-            case '7': {
-                field[cx][cy] = 7;
-                return true;
-            }
-            case '8': {
-                field[cx][cy] = 8;
-                return false;
-            }
-        }
-        return false;
-    }
-
-    public static void click() {
-        driver.findElement(By.id(((y + 1) / 2) + "_" + ((x + 1) / 2))).click();
-    }
-
-    public static void click(Pair<Integer, Integer>[] squaresToClick) {
-        if (!isAlertPresent()) {
-            for (Pair<Integer, Integer> stc : squaresToClick) {
-                driver.findElement(By.id((stc.getValue() + 1) + "_" + (stc.getKey() + 1))).click();
-            }
-        } else fillAlert();
     }
 }
