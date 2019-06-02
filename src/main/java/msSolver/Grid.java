@@ -1,5 +1,7 @@
 package msSolver;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -34,7 +36,8 @@ public class Grid implements Iterable<Cell> {
         return grid[x][y];
     }
 
-    void updateGrid(int[][] grid) {
+    void updateGrid(@NotNull int[][] grid) {
+        Objects.requireNonNull(grid);
         for (Cell cell : this) {
             if (cell.isSolved() || cell.isRevealed() || grid[cell.getX()][cell.getY()] == -1) {
                 continue;
@@ -47,7 +50,8 @@ public class Grid implements Iterable<Cell> {
         return x >= 0 && y >= 0 && x < sizeX && y < sizeY;
     }
 
-    public List<Cell> findMinesNearby(Cell cell) {
+    public List<Cell> findMinesNearby(@NotNull Cell cell) {
+        Objects.requireNonNull(cell);
         List<Cell> minesNearby = new ArrayList<>();
         forEachCellsAround(cell, (cellNearby) -> {
             if (cellNearby.isMine()) {
@@ -57,7 +61,8 @@ public class Grid implements Iterable<Cell> {
         return minesNearby;
     }
 
-    public List<Cell> findUndefinedNearby(Cell cell) {
+    public List<Cell> findUndefinedNearby(@NotNull Cell cell) {
+        Objects.requireNonNull(cell);
         List<Cell> undefinedNearby = new ArrayList<>();
         forEachCellsAround(cell, (cellNearby) -> {
             if (cellNearby.isUndefined()) {
@@ -67,7 +72,8 @@ public class Grid implements Iterable<Cell> {
         return undefinedNearby;
     }
 
-    public List<Cell> findRevealedNearby(Cell cell) {
+    public List<Cell> findRevealedNearby(@NotNull Cell cell) {
+        Objects.requireNonNull(cell);
         List<Cell> revealedNearby = new ArrayList<>();
         forEachCellsAround(cell, (cellNearby) -> {
             if (cellNearby.isRevealed()) {
@@ -77,7 +83,8 @@ public class Grid implements Iterable<Cell> {
         return revealedNearby;
     }
 
-    public List<Cell> findCellsBySharedUndefined(Cell cell) {
+    public List<Cell> findCellsBySharedUndefined(@NotNull Cell cell) {
+        Objects.requireNonNull(cell);
         Set<Cell> cellsBySharedUndefined = new HashSet<>();
         List<Cell> undefinedNearby = findUndefinedNearby(cell);
         for (Cell undefinedCell : undefinedNearby) {
@@ -106,19 +113,21 @@ public class Grid implements Iterable<Cell> {
     }
 
     @Override
+    @NotNull
     public Iterator<Cell> iterator() {
         return new GridIterator();
     }
 
     @Override
-    public void forEach(Consumer<? super Cell> action) {
+    public void forEach(@NotNull Consumer<? super Cell> action) {
         Objects.requireNonNull(action);
         for (Cell cell : this) {
             action.accept(cell);
         }
     }
 
-    public void forEachCellsAround(Cell cell, Consumer<? super Cell> action) {
+    public void forEachCellsAround(@NotNull Cell cell, @NotNull Consumer<? super Cell> action) {
+        Objects.requireNonNull(cell);
         Objects.requireNonNull(action);
         for (int dx = -1; dx <= 1; dx++) {
             for (int dy = -1; dy <= 1; dy++) {
